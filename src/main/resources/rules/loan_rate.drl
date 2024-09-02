@@ -1,0 +1,22 @@
+import com.uncia.loop.model.GuarantorDeviation;
+import com.uncia.loop.model.Deviation;
+import java.util.ArrayList;  
+import java.util.List;
+global com.uncia.loop.model.Response response;
+
+dialect "mvel"
+rule "OD Total"
+    when
+        $o: GuarantorDeviation($deviations: listOfDeviation)
+       totalLoanDue : Number() from accumulate(
+            Deviation(  $q: loanDue
+            ) from $deviations,
+            init(int count = 0;),
+            action(count += $q;),
+            reverse(count -= $q;),
+            result(count)
+        )
+    then
+          System.out.println("totalLoanDue >> " + totalLoanDue);
+          response.setLoanDue(totalLoanDue);
+end
